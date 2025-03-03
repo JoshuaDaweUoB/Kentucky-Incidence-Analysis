@@ -6,7 +6,6 @@ setwd("C:/Users/vl22683/OneDrive - University of Bristol/Documents/Publications/
 
 ## load data
 hcv_data_wide <- read_dta('SNAP dataset 2-23-24.dta')
-View(hcv_data_wide)
 
 # save data
 write_xlsx(hcv_data_wide,"HCV_data_wide.xlsx")
@@ -129,7 +128,7 @@ write_xlsx(testing_df,"HCV_testing_data.xlsx")
 ## exposure data
 
 # keep columns of interest
-exposure_df <- subset(hcv_data_long, select = c(subject, living, inj6m, trtmntb, conenva, sex30m, nocdmtr, sxnocdme, hcv)) 
+exposure_df <- subset(hcv_data_long, select = c(subject, gender, living, inj6m, trtmntb, conenva, sex30m, nocdmtr, sxnocdme, lifetime_msm, hcv)) 
 
 exposure_df <- exposure_df %>%
   arrange(subject) %>%
@@ -139,6 +138,25 @@ exposure_df <- exposure_df %>%
 # Set recent_sw to 1 if any of the variables are greater than 0, otherwise set it to 0
 exposure_df$recent_sw <- ifelse(exposure_df$nocdmtr > 0, 1, 0)
 exposure_df$recent_sw_part <- ifelse(exposure_df$sxnocdme > 0, 1, 0)
+
+# Recode sex30m so that any value above 1 is equal to 1
+exposure_df <- exposure_df %>%
+  mutate(sex30m = ifelse(sex30m > 1, 1, sex30m))
+
+# Create new variable homeless_recent
+exposure_df <- exposure_df %>%
+  mutate(homeless_recent = ifelse(living == 9, 1, 0))
+
+# rename variables
+exposure_df <- exposure_df %>%
+  rename(oat_ever = trtmntb) %>%
+  rename(msm_recent = sex30m) %>%
+  rename(incarc_recent = conenva)
+
+# Recode msm_recent and lifetime_msm to 0 if gender equals 2
+exposure_df <- exposure_df %>%
+  mutate(msm_recent = ifelse(gender == 2, NA, msm_recent),
+         lifetime_msm = ifelse(gender == 2, NA, lifetime_msm))
 
 sw_summary <- table(exposure_df$recent_sw)
 print(sw_summary) ## 108 incident infections
@@ -164,4 +182,4 @@ analysis_data_hcv$hcv_rslt <- as.numeric(analysis_data_hcv$hcv_rslt)
 analysis_data_hcv$days_risk <- as.numeric(analysis_data_hcv$days_risk)
 
 # save data
-write_xlsx(hcv_data_wide,"HCV_data_clean.xlsx")
+write_xlsx(analysis_data_hcv,"HCV_data_clean.xlsx")
