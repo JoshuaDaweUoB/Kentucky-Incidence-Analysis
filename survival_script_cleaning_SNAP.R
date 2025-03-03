@@ -3,7 +3,6 @@ pacman::p_load(dplyr, haven, tidyr, haven, readxl, writexl, survival)
 
 ## set wd
 setwd("C:/Users/vl22683/OneDrive - University of Bristol/Documents/Publications/Sex work and risk of HIV and HCV/Emails to authors/SNAP data/Data")
-#setwd("C:/Users/joshua.dawe/OneDrive - University of Bristol/Documents/Publications/Sex work and risk of HIV and HCV/Emails to authors/SNAP data/Data")
 
 ## load data
 hcv_data_wide <- read_dta('SNAP dataset 2-23-24.dta')
