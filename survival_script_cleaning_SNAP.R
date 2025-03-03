@@ -128,12 +128,13 @@ write_xlsx(testing_df,"HCV_testing_data.xlsx")
 ## exposure data
 
 # keep columns of interest
-exposure_df <- subset(hcv_data_long, select = c(subject, gender, living, inj6m, trtmntb, conenva, sex30m, nocdmtr, sxnocdme, lifetime_msm, hcv)) 
+exposure_df <- subset(hcv_data_long, select = c(subject, age, age1stin0, gender0, living, inj6m, trtmntb, conenva, sex30m, nocdmtr, sxnocdme, lifetime_msm, hcv)) 
+head(exposure_df)
 
 exposure_df <- exposure_df %>%
   arrange(subject) %>%
   group_by(subject) %>%
-  slice(-n())  
+  slice(-n())
 
 # Set recent_sw to 1 if any of the variables are greater than 0, otherwise set it to 0
 exposure_df$recent_sw <- ifelse(exposure_df$nocdmtr > 0, 1, 0)
@@ -143,15 +144,25 @@ exposure_df$recent_sw_part <- ifelse(exposure_df$sxnocdme > 0, 1, 0)
 exposure_df <- exposure_df %>%
   mutate(sex30m = ifelse(sex30m > 1, 1, sex30m))
 
-# Create new variable homeless_recent
+# Create variable homeless_recent
 exposure_df <- exposure_df %>%
   mutate(homeless_recent = ifelse(living == 9, 1, 0))
+
+# Create daily injection variable
+exposure_df <- exposure_df %>%
+  mutate(daily_inj_6m = ifelse(inj6m >= 0 & inj6m <= 5, 0, ifelse(inj6m >= 6 & inj6m <= 8, 1, NA_real_)))
+head(exposure_df)
+
+# Create years injected
+exposure_df <- exposure_df %>%
+  mutate(years_inj = age - age1stin0)
 
 # rename variables
 exposure_df <- exposure_df %>%
   rename(oat_ever = trtmntb) %>%
   rename(msm_recent = sex30m) %>%
-  rename(incarc_recent = conenva)
+  rename(incarc_recent = conenva) %>%
+  rename(gender = gender0)
 
 # Recode msm_recent and lifetime_msm to 0 if gender equals 2
 exposure_df <- exposure_df %>%

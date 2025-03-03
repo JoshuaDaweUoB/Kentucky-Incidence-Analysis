@@ -6,6 +6,7 @@ setwd("C:/Users/vl22683/OneDrive - University of Bristol/Documents/Publications/
 
 # load data
 analysis_data_hcv_clean <- read_excel("HCV_data_clean.xlsx")
+head(analysis_data_hcv_clean)
 
 ## HCV analysis ##
 
@@ -14,49 +15,32 @@ analysis_data_hcv <- analysis_data_hcv %>%
   group_by(subject) %>%
   mutate(id_seq = row_number())
 
-analysis_data_hcv_bl <- analysis_data_hcv %>%
-  group_by(ID) %>%
+analysis_data_hcv_bl <- analysis_data_hcv_clean %>%
+  group_by(subject) %>%
   mutate(id_seq = row_number(),
-         rec_sw_sell_90d = ifelse(all(is.na(rec_sw_sell_90d)), NA_real_, max(rec_sw_sell_90d, na.rm = TRUE)),
-         rec_incarc_6m = ifelse(all(is.na(rec_incarc_6m)), NA_real_, max(rec_incarc_6m, na.rm = TRUE)),
-         rec_oat_6m = ifelse(all(is.na(rec_oat_6m)), NA_real_, max(rec_oat_6m, na.rm = TRUE)),
-         rec_homeless = ifelse(all(is.na(rec_homeless)), NA_real_, max(rec_homeless, na.rm = TRUE))) %>%
+         recent_sw = ifelse(all(is.na(recent_sw)), NA_real_, max(recent_sw, na.rm = TRUE)),
+         incarc_recent = ifelse(all(is.na(incarc_recent)), NA_real_, max(incarc_recent, na.rm = TRUE)),
+         oat_ever = ifelse(all(is.na(oat_ever)), NA_real_, max(oat_ever, na.rm = TRUE)),
+         msm_recent = ifelse(all(is.na(msm_recent)), NA_real_, max(msm_recent, na.rm = TRUE)),
+         lifetime_msm = ifelse(all(is.na(lifetime_msm)), NA_real_, max(lifetime_msm, na.rm = TRUE)),
+         homeless_recent = ifelse(all(is.na(homeless_recent)), NA_real_, max(homeless_recent, na.rm = TRUE)),
+         gender = ifelse(all(is.na(gender)), NA_real_, max(gender, na.rm = TRUE)),
+         daily_inj_6m = ifelse(all(is.na(daily_inj_6m)), NA_real_, max(daily_inj_6m, na.rm = TRUE)),
+         years_inj = ifelse(all(is.na(years_inj)), NA_real_, max(years_inj, na.rm = TRUE))) %>%
   ungroup() %>%
   subset(id_seq == 1)
 
+# convert numeric to factor variables
+analysis_data_hcv_bl$gender <- factor(analysis_data_hcv_bl$gender)
+analysis_data_hcv_bl$recent_sw <- factor(analysis_data_hcv_bl$recent_sw)
+analysis_data_hcv_bl$incarc_recent <- factor(analysis_data_hcv_bl$incarc_recent)
+analysis_data_hcv_bl$oat_ever <- factor(analysis_data_hcv_bl$oat_ever)
+analysis_data_hcv_bl$msm_recent <- factor(analysis_data_hcv_bl$msm_recent)
+analysis_data_hcv_bl$lifetime_msm <- factor(analysis_data_hcv_bl$lifetime_msm)
+analysis_data_hcv_bl$homeless_recent <- factor(analysis_data_hcv_bl$homeless_recent)
+analysis_data_hcv_bl$daily_inj_6m <- factor(analysis_data_hcv_bl$daily_inj_6m)
 
+# table
+table_bl_sw_msm_hcv <- tableby(gender ~ age + recent_sw + incarc_recent + oat_ever + homeless_recent + msm_recent + lifetime_msm + daily_inj_6m + years_inj, data = analysis_data_hcv_bl)
+summary(table_bl_sw_msm_hcv, text=TRUE)
 
-analysis_data_hcv_bl <- subset(analysis_data_hcv, id_seq == 1)
-
-sw_summary_bl <- table(analysis_data_hcv_bl$sxnocdme)
-print(sw_summary_bl) ## 216 positive, 287 negative
-
-sw_summary_long <- table(analysis_data_hcv$sxnocdme)
-print(sw_summary_long) ## 216 positive, 287 negative
-
-## incidence rate calculations
-
-# overall incidence rate
-total_days_hcv <- sum(analysis_data_hcv$days_risk)
-total_cases <- sum(analysis_data_hcv$hcv_rslt)
-incidence_rate <- (total_cases / total_days_hcv) * 365.25 *100
-
-cat("Incidence rate of HCV per 100 person years:", incidence_rate)
-
-# selling sex work incidence rate
-analysis_data_hcv$sw_time_bin <- analysis_data_hcv$recent_sw
-analysis_data_hcv$sw_time_bin[is.na(analysis_data_hcv$sw_time_bin)] <- 0
-total_days_hcv_sw <- sum(analysis_data_hcv$days_risk[analysis_data_hcv$sw_time_bin == 1])
-total_cases_sw <- sum(analysis_data_hcv$hcv_rslt[analysis_data_hcv$sw_time_bin == 1])
-incidence_rate_sw <- (total_cases_sw / total_days_hcv_sw) * 365.25 *100
-
-cat("Incidence rate of HCV per 100 person years among sex workers:", incidence_rate_sw)
-
-# no sex work incidence rate
-analysis_data_hcv$sw_time_bin <- analysis_data_hcv$recent_sw
-analysis_data_hcv$sw_time_bin <- ifelse(is.na(analysis_data_hcv$sw_time_bin), 1, analysis_data_hcv$sw_time_bin)
-total_days_hcv_nosw <- sum(analysis_data_hcv$days_risk[analysis_data_hcv$sw_time_bin == 0])
-total_cases_nosw <- sum(analysis_data_hcv$hcv_rslt[analysis_data_hcv$sw_time_bin == 0])
-incidence_rate_nosw <- (total_cases_nosw / total_days_hcv_nosw) * 365.25 *100
-
-cat("Incidence rate of HCV per 100 person years among non-sex workers:", incidence_rate_nosw)
