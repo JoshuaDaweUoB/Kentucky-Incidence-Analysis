@@ -169,11 +169,13 @@ exposure_df <- exposure_df %>%
   mutate(msm_recent = ifelse(gender == 2, NA, msm_recent),
          lifetime_msm = ifelse(gender == 2, NA, lifetime_msm))
 
-sw_summary <- table(exposure_df$recent_sw)
-print(sw_summary) ## 108 incident infections
-
-sw_summary_part <- table(exposure_df$recent_sw_part)
-print(sw_summary_part) ## 108 incident infections
+# Create variable incarc_recent_analysis which replaces NA with 0
+exposure_df <- exposure_df %>%
+  mutate(incarc_recent_analysis = replace_na(incarc_recent, 0)) %>%
+  mutate(oat_ever_analysis = replace_na(oat_ever, 0)) %>%
+  mutate(daily_inj_6m_analysis = replace_na(daily_inj_6m, 0)) %>%
+  mutate(homeless_recent_analysis = replace_na(homeless_recent, 0)) %>%
+  mutate(years_inj_analysis = replace_na(years_inj, 0))
 
 # create analysis df
 
